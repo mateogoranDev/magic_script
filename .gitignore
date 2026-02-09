@@ -1,0 +1,8 @@
+# Ignorar los logs de los PCs reparados (Privacidad)
+Logs_Soporte/
+*.txt
+*.html
+
+# Ignorar archivos temporales de sistema
+.DS_Store
+Thumbs.db
