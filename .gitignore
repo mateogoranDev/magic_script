@@ -6,3 +6,9 @@ Logs_Soporte/
 # Ignorar archivos temporales de sistema
 .DS_Store
 Thumbs.db
+*.exe
+*.dll
+*.zip
+*.rar
+*.7z
+
