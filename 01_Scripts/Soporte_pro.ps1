@@ -44,7 +44,7 @@ $form.BackColor = "#1e1e2f"
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 10)
 
 $lblTitulo = New-Object System.Windows.Forms.Label
-$lblTitulo.Text = "🛠️  SOPORTE TÉCNICO BY Mateo - DIAGNÓSTICO + HERRAMIENTAS  🛠️"
+$lblTitulo.Text = "🛠️  SOPORTE TÉCNICO PROFESIONAL - DIAGNÓSTICO + HERRAMIENTAS  🛠️"
 $lblTitulo.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
 $lblTitulo.ForeColor = "#00d4ff"
 $lblTitulo.BackColor = "#1e1e2f"
@@ -415,22 +415,54 @@ function Start-DiagnosticoProfesional {
         Write-Rich "   • Servicio de impresión: No activo o sin cambios necesarios" "#a0a0c0"
     }
     
-    # ===========================================
-    # 5. 🔧 SFC SCANNOW
+   # ===========================================
+    # 5. 🔧 SFC SCANNOW (CON BARRA DE PROGRESO)
     # ===========================================
     Write-Rich "`n🔧 [5/6] VERIFICANDO INTEGRIDAD DEL SISTEMA" "#ffd966"
     Write-Rich "   ⏳ Esto puede tardar varios minutos (paciencia)..." "#ffd966"
     
+    # Activamos y configuramos la barra
+    $progressBar.Value = 10
+    $progressBar.Style = "Marquee" # Estilo de rebote para indicar actividad
+    $progressBar.Visible = $true
+
     try {
         $outputFile = Join-Path $CarpetaLogs "SFC_$NombrePC.txt"
-        sfc /scannow | Out-File -FilePath $outputFile -Encoding UTF8
+        
+        # Ejecutamos SFC en un proceso separado para que la GUI no se bloquee
+        $process = Start-Process sfc -ArgumentList "/scannow" -NoNewWindow -PassThru -Wait
+        
         $script:SFCStatus = "Completado"
+        $progressBar.Value = 100
+        $progressBar.Style = "Blocks"
+        
         Write-Rich "   ✅ SFC Scannow completado" "#6fdc6f"
         Write-Rich "   📄 Log guardado en: $outputFile" "#a0a0c0"
     } catch {
         $script:SFCStatus = "Error"
         Write-Rich "   ❌ Error al ejecutar SFC" "#ff6b6b"
     }
+
+    # ===========================================
+    # 5.5 🔧 REPARACIÓN AVANZADA CON DISM
+    # ===========================================
+    Write-Rich "`n🔧 [5.5/6] REPARACIÓN AVANZADA DEL SISTEMA (DISM)" "#ffd966"
+    $progressBar.Style = "Marquee"
+    
+    try {
+        $DISMLog = Join-Path $CarpetaLogs "DISM_$NombrePC.txt"
+        
+        # Ejecución secuencial de DISM
+        Write-LogGUI "Ejecutando DISM RestoreHealth..."
+        DISM /Online /Cleanup-Image /RestoreHealth | Out-File $DISMLog -Append
+        
+        Write-Rich "   ✅ Reparación DISM completada" "#6fdc6f"
+    } catch {
+        Write-Rich "   ❌ Error en DISM" "#ff6b6b"
+    }
+    
+    $progressBar.Style = "Blocks"
+    $progressBar.Value = 100
     
     # ===========================================
     # 6. 🔋 BATERÍA
